@@ -25,14 +25,24 @@ import express from 'express';
   // Log all routes before mounting
   console.log('Routes before mounting:');
   const printRoutes = (stack, prefix = '') => {
-    stack.forEach(layer => {
+    if (!stack || !Array.isArray(stack)) {
+      console.log('Invalid stack:', stack);
+      return;
+    }
+    stack.forEach((layer, index) => {
+      if (!layer) {
+        console.log(`Skipping undefined layer at index ${index}`);
+        return;
+      }
       if (layer.route) {
         Object.keys(layer.route.methods).forEach(method => {
           console.log(`${method.toUpperCase()} ${prefix}${layer.route.path}`);
         });
-      } else if (layer.name === 'router' && layer.handle.stack) {
+      } else if (layer.name === 'router' && layer.handle && layer.handle.stack) {
         const routePrefix = layer.regexp.source.replace(/^\^\\\/|\/\?(.*)$/g, '$1');
         printRoutes(layer.handle.stack, prefix + routePrefix);
+      } else {
+        console.log(`Skipping layer at index ${index}:`, layer.name || 'unnamed');
       }
     });
   };
@@ -62,7 +72,11 @@ import express from 'express';
 
     // Log all routes after mounting
     console.log('All registered routes:');
-    printRoutes(app._router.stack);
+    if (app._router && app._router.stack) {
+      printRoutes(app._router.stack);
+    } else {
+      console.log('Router stack not available');
+    }
   } catch (err) {
     console.error('Error registering routes:', err);
   }
