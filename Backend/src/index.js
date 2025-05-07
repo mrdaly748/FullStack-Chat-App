@@ -51,9 +51,10 @@ try {
   console.log('Message routes mounted');
 
   if (process.env.NODE_ENV === "production") {
+    console.log('Mounting static files');
     app.use(express.static(path.join(__dirname, "../frontend/dist")));
-    // Use a named wildcard or remove the route
-    app.get("/*", (req, res) => {
+    console.log('Mounting wildcard route');
+    app.get("/:path*", (req, res) => {
       res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
     });
     console.log('Production routes mounted');
