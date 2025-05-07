@@ -22,8 +22,34 @@ app.use(
   })
 );
 
+// Log all routes before mounting
+console.log('Routes before mounting:');
+const printRoutes = (stack, prefix = '') => {
+  stack.forEach(layer => {
+    if (layer.route) {
+      Object.keys(layer.route.methods).forEach(method => {
+        console.log(`${method.toUpperCase()} ${prefix}${layer.route.path}`);
+      });
+    } else if (layer.name === 'router' && layer.handle.stack) {
+      const routePrefix = layer.regexp.source.replace(/^\^\\\/|\/\?(.*)$/g, '$1');
+      printRoutes(layer.handle.stack, prefix + routePrefix);
+    }
+  });
+};
+
 try {
+  // Log routes for authRoutes
+  console.log('Auth routes:');
+  printRoutes(authRoutes.stack);
+
+  // Mount auth routes
   app.use("/api/auth", authRoutes);
+
+  // Log routes for messageRoutes
+  console.log('Message routes:');
+  printRoutes(messageRoutes.stack);
+
+  // Mount message routes
   app.use("/api/messages", messageRoutes);
 
   if (process.env.NODE_ENV === "production") {
@@ -33,20 +59,8 @@ try {
     });
   }
 
-  // Log all routes
-  console.log('Registered routes:');
-  const printRoutes = (stack, prefix = '') => {
-    stack.forEach(layer => {
-      if (layer.route) {
-        Object.keys(layer.route.methods).forEach(method => {
-          console.log(`${method.toUpperCase()} ${prefix}${layer.route.path}`);
-        });
-      } else if (layer.name === 'router' && layer.handle.stack) {
-        const routePrefix = layer.regexp.source.replace(/^\^\\\/|\/\?(.*)$/g, '$1');
-        printRoutes(layer.handle.stack, prefix + routePrefix);
-      }
-    });
-  };
+  // Log all routes after mounting
+  console.log('All registered routes:');
   printRoutes(app._router.stack);
 } catch (err) {
   console.error('Error registering routes:', err);
