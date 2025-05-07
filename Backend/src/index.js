@@ -38,25 +38,24 @@ const printRoutes = (stack, prefix = '') => {
 };
 
 try {
-  // Log routes for authRoutes
+  // Log and mount auth routes
   console.log('Auth routes:');
   printRoutes(authRoutes.stack);
-
-  // Mount auth routes
   app.use("/api/auth", authRoutes);
+  console.log('Auth routes mounted');
 
-  // Log routes for messageRoutes
+  // Log and mount message routes
   console.log('Message routes:');
   printRoutes(messageRoutes.stack);
-
-  // Mount message routes
   app.use("/api/messages", messageRoutes);
+  console.log('Message routes mounted');
 
   if (process.env.NODE_ENV === "production") {
     app.use(express.static(path.join(__dirname, "../frontend/dist")));
     app.get("*", (req, res) => {
       res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
     });
+    console.log('Production routes mounted');
   }
 
   // Log all routes after mounting
